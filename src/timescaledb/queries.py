@@ -1,9 +1,8 @@
-from datetime import timezone
-from typing import Any, Dict, List
+```from typing import Any, Dict, List
 
 from sqlalchemy import Float, Numeric, text
 from sqlalchemy.orm.attributes import InstrumentedAttribute
-from sqlmodel import Field, Session, func, select
+from sqlmodel import Session, func, select
 
 from timescaledb.hyperfunctions import time_bucket, time_bucket_gapfill
 
@@ -76,29 +75,6 @@ def time_bucket_gapfill_query(
     model_timescale_field_value = getattr(model, time_field)
     metric_field_value = getattr(model, metric_field)
 
-    # Print debug information
-    print(f"Start time: {start}")
-    print(f"End time: {finish}")
-    print(f"Interval: {interval}")
-    print(f"Time field: {time_field}")
-    print(f"Metric field: {metric_field}")
-
-    # First, let's check if we have any data in the time range
-    check_query = (
-        select(
-            func.count(metric_field_value),
-            func.min(model_timescale_field_value),
-            func.max(model_timescale_field_value),
-        )
-        .filter(model_timescale_field_value >= start)
-        .filter(model_timescale_field_value <= finish)
-    )
-
-    check_result = session.exec(check_query).first()
-    print(
-        f"Data in range: count={check_result[0]}, min={check_result[1]}, max={check_result[2]}"
-    )
-
     # Remove any timezone info from start/finish if present
     if start and start.tzinfo:
         start = start.replace(tzinfo=None)
@@ -134,12 +110,6 @@ def time_bucket_gapfill_query(
         .group_by(bucket)
         .order_by(text(f"{bucket_label} ASC"))
     )
-
-    print(
-        "\nGenerated SQL:", str(query.compile(compile_kwargs={"literal_binds": True}))
-    )
-
     result = session.exec(query)
     result = result.mappings().all()
-    print(f"\nNumber of results returned: {len(result)}")
     return list(result)

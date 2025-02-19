@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, HTTPException
-from sqlmodel import Session, desc, func, select, text
+from sqlmodel import Session, desc
 
 from timescaledb import list_hypertables
 from timescaledb.queries import time_bucket_gapfill_query
 
-# from timescaledb.hyperfunctions import time_bucket
-# from timescaledb.queries import get_histogram
 from . import models
 from .database import get_session, init_db
 
@@ -48,17 +46,6 @@ def list_metrics(session: Session = Depends(get_session)):
     return metrics
 
 
-@app.get("/users/{user_id}/metrics/", response_model=list[models.MetricRead])
-def list_user_metrics(user_id: int, session: Session = Depends(get_session)):
-    user = session.get(models.User, user_id)
-    if not user:
-        raise HTTPException(status_code=404, message="User not found")
-    metrics = (
-        session.query(models.Metric).filter(models.Metric.user_id == user_id).all()
-    )
-    return metrics
-
-
 @app.get("/metrics/buckets/", response_model=list[dict])
 def get_metric_buckets(
     interval: str = "1 hour", session: Session = Depends(get_session)
@@ -79,26 +66,8 @@ def get_metric_buckets(
         metric_field="temp",
         interval=interval,
         use_interpolate=True,
-        use_locf=False,  # Disable LOCF to ensure we're using pure interpolation
+        use_locf=False,
         start=start_time,
         finish=end_time,
     )
     return raw_results
-
-
-# @app.get("/metrics/histogram/", response_model=list[dict])
-# def get_metric_histogram(
-#     min_value: float,
-#     max_value: float,
-#     num_buckets: int = 5,
-#     session: Session = Depends(get_session),
-# ):
-#     """Get histogram of metric temperatures"""
-#     return get_histogram(
-#         session=session,
-#         model=models.Metric,
-#         field="temp",
-#         min_value=min_value,
-#         max_value=max_value,
-#         num_of_buckets=num_buckets,
-#     )

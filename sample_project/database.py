@@ -1,10 +1,15 @@
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel
 
 import timescaledb
 
-from .config import DATABASE_URL, TIME_ZONE
+from .config import (
+    DATABASE_URL,
+    ECHO_QUERIES,
+    TIME_ZONE,
+)
 
-engine = timescaledb.create_engine(DATABASE_URL, timezone=TIME_ZONE, echo=False)
+# time zone focused wrapper for sqlmodel.create_engine/sqlalchemy.create_engine
+engine = timescaledb.create_engine(DATABASE_URL, timezone=TIME_ZONE, echo=ECHO_QUERIES)
 
 
 def init_db():
