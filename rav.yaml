@@ -8,6 +8,12 @@ scripts:
   makemigrations:
     - cd sample_project
     - ../venv/bin/python -m alembic revision --autogenerate -m "$message"
+  generate_samples:
+    - echo "Assuming sample project is running on http://localhost:8000"
+    - sh sample_project/create-data.sh 50
+  time_bucket_gap_fill:
+    - echo "Assuming sample project is running on http://localhost:8000"
+    - curl http://localhost:8000/metrics/buckets/
   migrate:
     - cd sample_project
     - ../venv/bin/python -m alembic upgrade head

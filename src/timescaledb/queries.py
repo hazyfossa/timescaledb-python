@@ -1,4 +1,4 @@
-```from typing import Any, Dict, List
+from typing import Any, Dict, List
 
 from sqlalchemy import Float, Numeric, text
 from sqlalchemy.orm.attributes import InstrumentedAttribute
