@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "timescaledb"
-version = "0.0.1"
+version = "0.0.2"
 description = "TimescaleDB is a Python Client based on SQLModel and SQLAlchemy for high-performance real-time analytics time-series data."
 readme = "README.md"
 authors = [
@@ -76,7 +76,7 @@ warn_unreachable = true
 
 [tool.poetry]
 name = "timescaledb"
-version = "0.0.1"
+version = "0.0.2"
 description = "TimescaleDB is a Python Client based on SQLModel and SQLAlchemy for high-performance real-time analytics time-series data."
 authors = ["Justin Mitchel <justin@codingforentrepreneurs.com>"]
 
