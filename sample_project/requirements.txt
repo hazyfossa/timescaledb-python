@@ -1,0 +1,8 @@
+alembic
+fastapi
+sqlmodel
+uvicorn
+python-decouple
+timescaledb
+psycopg[binary] # not yet supported
+# psycopg2-binary

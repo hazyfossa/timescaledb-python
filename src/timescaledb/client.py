@@ -1,2 +1,0 @@
-class TimescaleModel:
-    pass

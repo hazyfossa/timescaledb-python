@@ -1,15 +1,27 @@
 scripts:
   install:
+    - venv/bin/python3 -m pip uninstall -y timescaledb
     - venv/bin/python3 -m pip install -e .
+  init_alembic:
+    - cd sample_project
+    - ../venv/bin/python -m alembic init migrations
+  makemigrations:
+    - cd sample_project
+    - ../venv/bin/python -m alembic revision --autogenerate -m "$message"
+  migrate:
+    - cd sample_project
+    - ../venv/bin/python -m alembic upgrade head
+  app_install:
+    - cd sample_project
+    - ../venv/bin/pip install -r requirements.txt
   sample_server:
-    - cd sample_project && ../venv/bin/python manage.py runserver 8133
+    - cd sample_project
+    - ../venv/bin/uvicorn main:app --reload
   sample_shell:
-    - cd sample_project && ../venv/bin/python manage.py shell
+    - cd sample_project
+    - ../venv/bin/python main.py
   bump:
     - venv/bin/bump2version patch
-  makemigrations:
-    - cd sample_project && ../venv/bin/python manage.py makemigrations
-    - ../venv/bin/python manage.py migrate
   test:
     - venv/bin/tox run -f py312
     - venv/bin/coverage combine
