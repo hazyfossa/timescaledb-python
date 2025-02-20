@@ -90,12 +90,12 @@ jobs:
           python -c "print('Hello, world!, coming soon')"
         continue-on-error: true
 
-      # - name: Upload HTML report
-      #   if: ${{ failure() }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: html-report
-      #     path: htmlcov
+      - name: Upload HTML report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: htmlcov
   
   release:
     if: success() && startsWith(github.ref, 'refs/tags/')
