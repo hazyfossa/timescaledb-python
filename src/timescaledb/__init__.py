@@ -6,9 +6,9 @@ from . import metadata
 from .activator import activate_timescaledb_extension
 from .engine import create_engine
 from .hypertables import (
-    create_all_hypertables,
     create_hypertable,
     list_hypertables,
+    sync_all_hypertables,
 )
 from .models import TimescaleModel
 from .queries import time_bucket_gapfill_query, time_bucket_query
@@ -17,7 +17,7 @@ __all__ = [
     "metadata",
     "TimescaleModel",
     "activate_timescaledb_extension",
-    "create_all_hypertables",
+    "sync_all_hypertables",
     "create_hypertable",
     "list_hypertables",
     "create_engine",

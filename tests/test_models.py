@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy import inspect
@@ -24,7 +24,22 @@ class Metric(TimescaleModel, table=True):
     value: float
 
     # Enable compression for testing
+    __table_name__ = "metrics"
     __enable_compression__ = False
+
+
+class VideoView(TimescaleModel, table=True):
+    """Test model for TimescaleDB functionality."""
+
+    duration: int
+    video_id: int = Field(index=True)
+
+    # Enable compression for testing
+    __table_name__ = "video_views"
+    __enable_compression__ = True
+    __compress_orderby__ = "time"
+    __compress_segmentby__ = "video_id"
+    __compress_chunk_time_interval__ = "10 minutes"
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -41,9 +56,10 @@ def test_model_table_exists(session: Session, engine: Engine):
     """Test that the model table exists."""
     inspector = inspect(engine)
     available_tables = inspector.get_table_names()
-    assert len(available_tables) == 2
+    assert len(available_tables) == 3
     assert Metric.__tablename__ in available_tables, "Metrics table was not created!"
     assert Record.__tablename__ in available_tables, "Record table was not created!"
+    assert VideoView.__tablename__ in available_tables, "View table was not created!"
 
 
 def test_timescale_model_data_insert(session: Session, engine: Engine):
@@ -71,7 +87,7 @@ def test_timescale_model_data_insert(session: Session, engine: Engine):
 def test_hypertables(session: Session, engine: Engine):
     """Test that hypertables are created correctly."""
     hypertables = timescaledb.list_hypertables(session)
-    assert len(hypertables) == 1
+    assert len(hypertables) == 2
     first_item = hypertables[0]
     assert isinstance(first_item, HyperTableSchema)
     assert first_item.hypertable_name == Metric.__tablename__
@@ -188,7 +204,6 @@ def test_time_bucket_query_invalid_params(session: Session):
 
 def test_time_bucket_gapfill_query_invalid_params(session: Session):
     """Test time_bucket_gapfill_query with invalid parameters."""
-    from datetime import datetime, timedelta
 
     base_time = datetime(2024, 1, 1, 12, 0)
 
@@ -259,7 +274,6 @@ def test_time_bucket_query_with_filters(session: Session):
 
 def test_time_bucket_gapfill_query_with_filters(session: Session):
     """Test time_bucket_gapfill_query with additional filters."""
-    from datetime import datetime, timedelta
 
     base_time = datetime(2024, 1, 1, 12, 0)
     metrics = [

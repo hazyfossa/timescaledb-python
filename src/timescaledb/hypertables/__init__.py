@@ -1,11 +1,11 @@
-from .base import (
-    create_all_hypertables,
-    create_hypertable,
-    list_hypertables,
-)
+from .create import create_hypertable
+from .list import list_hypertables
+from .schemas import HyperTableSchema
+from .sync import sync_all_hypertables
 
 __all__ = [
     "create_hypertable",
-    "create_all_hypertables",
+    "sync_all_hypertables",
     "list_hypertables",
+    "HyperTableSchema",
 ]

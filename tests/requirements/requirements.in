@@ -3,4 +3,5 @@ pytest
 pytest-randomly
 testcontainers
 psycopg[binary]
+pytest-mock
 # psycopg2-binary
