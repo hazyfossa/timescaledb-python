@@ -1,5 +1,6 @@
 .env
 sample_project/db.sqlite3
+.vscode/
 
 .DS_Store
 *.py[cod]

@@ -1,0 +1,6 @@
+coverage[toml]
+pytest
+pytest-randomly
+testcontainers
+psycopg[binary]
+# psycopg2-binary

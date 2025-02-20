@@ -50,16 +50,16 @@ jobs:
     - name: Install dependencies
       run: uv pip install --system tox tox-uv
 
-    # - name: Run tox targets for ${{ matrix.python-version }}
-    #   run: tox run -f py$(echo ${{ matrix.python-version }} | tr -d .)
+    - name: Run tox targets for ${{ matrix.python-version }}
+      run: tox run -f py$(echo ${{ matrix.python-version }} | tr -d .)
 
-    # - name: Upload coverage data
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: coverage-data-${{ matrix.python-version }}
-    #     path: '${{ github.workspace }}/.coverage.*'
-    #     include-hidden-files: true
-    #     if-no-files-found: warn
+    - name: Upload coverage data
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-data-${{ matrix.python-version }}
+        path: '${{ github.workspace }}/.coverage.*'
+        include-hidden-files: true
+        if-no-files-found: warn
   
   coverage:
     name: Coverage

@@ -2,3 +2,5 @@ bump2version
 pre_commit
 tox
 coverage
+testcontainers[postgres]
+pytest

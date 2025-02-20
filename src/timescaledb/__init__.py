@@ -3,15 +3,15 @@ from __future__ import annotations
 __version__ = "0.0.2"
 
 from . import metadata
+from .activator import activate_timescaledb_extension
 from .engine import create_engine
-from .models import TimescaleModel
-from .queries import time_bucket_gapfill_query, time_bucket_query
-from .utils import (
-    activate_timescaledb_extension,
+from .hypertables import (
     create_all_hypertables,
     create_hypertable,
     list_hypertables,
 )
+from .models import TimescaleModel
+from .queries import time_bucket_gapfill_query, time_bucket_query
 
 __all__ = [
     "metadata",
@@ -23,4 +23,6 @@ __all__ = [
     "create_engine",
     "time_bucket_query",
     "time_bucket_gapfill_query",
+    "defaults",
+    "get_defaults",
 ]

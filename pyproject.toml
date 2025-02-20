@@ -50,9 +50,7 @@ profile = "black"
 addopts = """
     --strict-config
     --strict-markers
-    --ds=tests.settings
     """
-django_find_project = false
 xfail_strict = true
 
 [tool.coverage.run]
@@ -63,6 +61,26 @@ omit = [
     "*/migrations/*",
     "*/admin.py",
     "tests/*",
+]
+
+[tool.coverage.paths]
+source = [
+    "timescaledb",
+    "*/timescaledb",
+    "src/timescaledb",
+    ".tox/*/lib/python*/site-packages/timescaledb",
+]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
 ]
 
 [tool.mypy]

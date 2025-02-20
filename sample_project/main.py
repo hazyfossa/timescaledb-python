@@ -20,7 +20,10 @@ def on_startup():
 @app.get("/")
 def root(session: Session = Depends(get_session)):
     hypertables = list_hypertables(session)
-    return {"message": "Hello World", "hypertables": hypertables}
+    return {
+        "message": "Hello World",
+        "hypertables": [hypertable.model_dump() for hypertable in hypertables],
+    }
 
 
 @app.post("/metrics/", response_model=models.MetricRead)
