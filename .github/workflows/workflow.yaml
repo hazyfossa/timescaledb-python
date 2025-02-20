@@ -87,7 +87,8 @@ jobs:
 
       - name: Combine coverage and fail if it's <90%
         run: |
-          python -c "print('Hello, world!, coming soon')"
+          coverage combine
+          coverage report --fail-under=90
         continue-on-error: true
 
       - name: Upload HTML report
