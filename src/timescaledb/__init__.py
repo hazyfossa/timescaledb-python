@@ -12,6 +12,7 @@ from .hypertables import (
 )
 from .models import TimescaleModel
 from .queries import time_bucket_gapfill_query, time_bucket_query
+from .retention import add_retention_policy
 
 __all__ = [
     "metadata",

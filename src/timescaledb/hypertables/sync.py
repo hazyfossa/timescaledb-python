@@ -27,9 +27,12 @@ def sync_all_hypertables(session: Session, *models: Type[SQLModel]) -> None:
     for model in model_list:
         create_hypertable(
             session,
-            model,
-            if_not_exists=True,
-            migrate_data=True,
             commit=False,
+            model=model,
+            table_name=None,
+            hypertable_options={
+                "if_not_exists": True,
+                "migrate_data": True,
+            },
         )
     session.commit()

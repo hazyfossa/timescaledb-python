@@ -1,7 +1,8 @@
-from datetime import timedelta
-from typing import Generator
+from datetime import datetime, timedelta
+from typing import Generator, Optional
 
 import pytest
+import sqlmodel
 from sqlalchemy.engine import Engine
 from sqlmodel import Field, Session, SQLModel
 from testcontainers.postgres import PostgresContainer
@@ -9,6 +10,7 @@ from testcontainers.postgres import PostgresContainer
 import timescaledb
 from timescaledb.engine import create_engine
 from timescaledb.models import TimescaleModel
+from timescaledb.utils import get_utc_now
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -55,6 +57,22 @@ def timescale_url(timescale_container: PostgresContainer) -> str:
 class Record(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     name: str
+
+
+class ManualHypertable(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    name: str
+    id: Optional[int] = Field(
+        default=None,
+        primary_key=True,
+        sa_column_kwargs={"autoincrement": True},
+    )
+    time: datetime = Field(
+        default_factory=get_utc_now,
+        sa_type=sqlmodel.DateTime(timezone=True),
+        primary_key=True,
+        nullable=False,
+    )
 
 
 class Metric(TimescaleModel, table=True):

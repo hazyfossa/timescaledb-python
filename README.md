@@ -10,14 +10,101 @@ Looking for Django? [Check out django-timescaledb](https://github.com/jamessewel
 pip install timescaledb
 ```
 
-## Usage 
+## Quickstart
+
+The timescaledb python package provides helpers for creating hypertables, configuring compression, retention policies, and more.
+
+## Two ways to create a TimescaleDB Model
+
+- Automatically via `TimescaleModel`
+- Manually via `create_hypertable` on any table with a `time` column
+
+Let's take a look at the manual way first.
 
 
-### Create a TimescaleDB Model
+### Manually Create a Hypertable
 
-The `TimescaleModel` class inherits from `SQLModel` but incldues a `time` field for TimescaleDB hypertables and an `id` field for primary keys.
+```python
+from sqlmodel import create_engine, Field, SQLModel
+import timescaledb
 
-`models.py`
+TIMESCALE_DATABASE_URL = "postgresql://user:password@localhost:5432/timescaledb"
+engine = create_engine(TIMESCALE_DATABASE_URL)
+
+class Sensor(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    time: datetime = Field(default=None, primary_key=True)
+    sensor_id: int = Field(index=True)
+    value: float
+
+    __tablename__ = "my_time_series_table"
+
+
+hypertable_options = {
+    "time_column": "time",
+    "compress_orderby": "time DESC",
+    "compress_segmentby": "sensor_id",
+    "chunk_time_interval": "7 days",
+    "drop_after": "1 year",
+    "migrate_data": True,
+    "if_not_exists": True,
+}
+
+# Create the table and the hypertable
+with Session(engine) as session:
+    # Create the table in the database
+    SQLModel.metadata.create_all(engine)
+    # Create the hypertable
+    table_name="my_time_series_table",
+    timescaledb.create_hypertable(session, commit=True, table_name=table_name, hypertable_options=hypertable_options)
+    # Add compression policy
+    timescaledb.add_compression_policy(session, commit=True, table_name=table_name, interval="7 days")
+    # Add retention policy
+    timescaledb.add_retention_policy(session, commit=True, table_name=table_name, drop_after=hypertable_options.get('drop_after'))
+```
+
+
+### Automatically via `TimescaleModel`
+
+
+```python
+from sqlmodel import Field
+
+import timescaledb
+from timescaledb import create_engine, TimescaleModel
+
+TIMESCALE_DATABASE_URL = "postgresql://user:password@localhost:5432/timescaledb"
+engine = create_engine(TIMESCALE_DATABASE_URL, timezone="UTC")
+
+class SensorDos(TimescaleModel, table=True):
+    sensor_id: int = Field(index=True)
+    value: float
+
+    __enable_compression__ = True
+    __compress_orderby__ = "time DESC"
+    __compress_segmentby__ = "sensor_id"  
+    __chunk_time_interval__ = "7 days"
+    __drop_after__ = "1 year"
+    __migrate_data__ = True
+    __if_not_exists__ = True
+
+
+# Create the table and the hypertable
+with Session(engine) as session:
+    # Create the table in the database
+    SQLModel.metadata.create_all(engine)
+    # Creates all hypertable, add compression policies, and add retention policy
+    timescaledb.metadata.create_all(engine)
+```
+
+
+
+
+## Sample Usage 
+
+Below is a sample of using `timescaledb` in a FastAPI app much like the example in [./sample_project](./sample_project).
+
+`src/models.py`
 ```python
 from sqlmodel import Field, SQLModel
 
@@ -26,6 +113,10 @@ from timescaledb import TimescaleModel
 # create a model
 class Metric(TimescaleModel, table=True):
     temp: float
+
+    __enable_compression__ = True
+    __chunk_time_interval__ = "2 weeks"
+    __drop_after__ = "1 year"
 
 
 class MetricCreate(Metric):
@@ -45,7 +136,7 @@ class MetricRead(Metric):
 
 The `timescaledb.create_engine` is a wrapper around `sqlmodel.create_engine` (which is a wrapper around `sqlalchemy.create_engine`) that ensures a timezone is set for your database. 
 
-`database.py`
+`src/database.py`
 ```python
 import timescaledb
 from sqlmodel import Session, SQLModel
@@ -78,7 +169,7 @@ def init_db():
 
 Put it all together in a FastAPI app.
 
-`main.py`
+`src/main.py`
 ```python
 from fastapi import FastAPI
 
@@ -113,15 +204,4 @@ def list_metrics(session: Session = Depends(get_session)):
     metrics = session.query(Metric).all()
     return metrics
 ```
-
-### Review the Sample Project
-
-
-In [./sample_project](./sample_project) you can review a complete example that includes:
-- A TimescaleDB model
-- A FastAPI app
-- Sample queries (`time_bucket_gapfill_query`, `time_bucket_query`)
-
-
-
 

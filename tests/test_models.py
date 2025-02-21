@@ -23,7 +23,10 @@ def test_model_table_exists(session: Session, engine: Engine):
     """Test that the model table exists."""
     inspector = inspect(engine)
     available_tables = inspector.get_table_names()
-    assert len(available_tables) == 7
+    assert len(available_tables) in [
+        7,
+        8,
+    ]  # 7 for automatic hypertables, 1 for manual hypertable
     assert Metric.__tablename__ in available_tables, "Metrics table was not created!"
     assert Record.__tablename__ in available_tables, "Record table was not created!"
     assert VideoView.__tablename__ in available_tables, "View table was not created!"
@@ -54,7 +57,11 @@ def test_timescale_model_data_insert(session: Session, engine: Engine):
 def test_hypertables(session: Session, engine: Engine):
     """Test that hypertables are created correctly."""
     hypertables = timescaledb.list_hypertables(session)
-    assert len(hypertables) == len(test_hypertables_list)
+    # automatic hypertables + 1 for manual hypertable
+    assert len(hypertables) in [
+        len(test_hypertables_list),
+        len(test_hypertables_list) + 1,
+    ]
     first_item = hypertables[0]
     assert isinstance(first_item, HyperTableSchema)
     assert first_item.hypertable_name == Metric.__tablename__

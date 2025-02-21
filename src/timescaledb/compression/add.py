@@ -12,7 +12,7 @@ from timescaledb.compression.validators import (
 
 
 def add_compression_policy(
-    session: Session, model: Type[SQLModel], commit: bool = True
+    session: Session, model: Type[SQLModel], commit: bool = True, auto_enable=False
 ) -> None:
     """
     Enable compression for a hypertable

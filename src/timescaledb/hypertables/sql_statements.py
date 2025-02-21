@@ -8,7 +8,7 @@ SELECT create_hypertable(
 """
 
 
-CREATE_HYPERTABLE_SQL_VIA_TIMESTAMP = """
+CREATE_HYPERTABLE_SQL_VIA_INTEGER = """
 SELECT create_hypertable(
     :table_name, 
     by_range(:time_column, :chunk_time_interval),
