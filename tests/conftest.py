@@ -1,11 +1,14 @@
-import os
+from datetime import timedelta
 from typing import Generator
 
 import pytest
-from sqlmodel import Session, SQLModel
+from sqlalchemy.engine import Engine
+from sqlmodel import Field, Session, SQLModel
 from testcontainers.postgres import PostgresContainer
 
+import timescaledb
 from timescaledb.engine import create_engine
+from timescaledb.models import TimescaleModel
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -47,3 +50,93 @@ def timescale_url(timescale_container: PostgresContainer) -> str:
     user = timescale_container.username
     password = timescale_container.password
     return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db_name}"
+
+
+class Record(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    name: str
+
+
+class Metric(TimescaleModel, table=True):
+    """Test model for TimescaleDB functionality."""
+
+    sensor_id: int = Field(index=True)
+    value: float
+
+    __table_name__ = "metrics"
+    __enable_compression__ = False
+
+
+class VideoView(TimescaleModel, table=True):
+    """Test model for TimescaleDB functionality."""
+
+    duration: int
+    video_id: int = Field(index=True)
+
+    __table_name__ = "video_views"
+    __enable_compression__ = True
+    __compress_chunk_time_interval__ = "INTERVAL 1 day"
+    __compress_orderby__ = "time DESC"
+    __compress_segmentby__ = "video_id"
+
+
+class PageView(TimescaleModel, table=True):
+    """Test model for TimescaleDB functionality."""
+
+    path: str = Field(index=True)
+
+    __table_name__ = "page_views"
+    __enable_compression__ = True
+    __chunk_time_interval__ = timedelta(days=30)
+    __compress_orderby__ = "time ASC"
+    __compress_segmentby__ = "path"
+
+
+class SimpleCompression(TimescaleModel, table=True):
+    """Test model for TimescaleDB functionality."""
+
+    value: int
+
+    __table_name__ = "simple_compression"
+    __enable_compression__ = True
+
+
+class SimpleCompressionWithOrderby(TimescaleModel, table=True):
+    """Test model for TimescaleDB functionality."""
+
+    value: int
+
+    __table_name__ = "simple_compression_with_orderby"
+    __enable_compression__ = True
+    __compress_orderby__ = "value ASC"
+
+
+class SimpleCompressionWithSegmentby(TimescaleModel, table=True):
+    """Test model for TimescaleDB functionality."""
+
+    value: int
+
+    __table_name__ = "simple_compression_with_segmentby"
+    __enable_compression__ = True
+    __compress_segmentby__ = "value"
+
+
+@pytest.fixture(scope="function", autouse=True)
+def migrate_database(engine: Engine):
+    """Migrate the database to the latest version."""
+    print("Starting database migration...")  # Debug print
+    SQLModel.metadata.drop_all(engine)
+    SQLModel.metadata.create_all(engine)
+    timescaledb.metadata.create_all(engine)
+    return engine
+
+
+test_hypertables_list = [
+    Metric,
+    VideoView,
+    PageView,
+    SimpleCompression,
+    SimpleCompressionWithOrderby,
+    SimpleCompressionWithSegmentby,
+]
+test_regular_tables_list = [Record]

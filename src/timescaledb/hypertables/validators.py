@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Type
 
 import sqlalchemy
@@ -30,140 +31,63 @@ def validate_time_column(model: Type[SQLModel], time_column: str = "time") -> bo
         )
 
 
-def validate_time_interval(model: Type[SQLModel], time_interval: str) -> bool:
+def validate_chunk_time_interval(
+    model_class: Type[SQLModel], time_column: str, interval: str
+) -> None:
     """
-    Verify if the specified time interval is a valid time interval
-    1 <interval>
-    N <interval>s
+    Validate that chunk_time_interval matches the time column type.
 
-    <interval> is one of:
-    - second
-    - minute
-    - hour
-    - day
-    - week
-    - month
+    Args:
+        model_class: The SQLModel class containing the time column
+        time_column: Name of the time column
+        interval: The chunk time interval value to validate
 
-    Such as:
-
-    1 day
-    7 days
+    Raises:
+        ValueError: If the interval format doesn't match the column type requirements
     """
-    if time_interval is None:
-        raise exceptions.TimeIntervalNotSet(
-            f"Time interval is not set for model {model.__name__}"
+    column = model_class.__table__.columns.get(time_column)
+    if column is None:
+        raise exceptions.InvalidChunkTimeInterval(
+            f"{model_class.__name__}: Time column {time_column} not found"
         )
-    valid_units = {
-        "second": "seconds",
-        "minute": "minutes",
-        "hour": "hours",
-        "day": "days",
-        "week": "weeks",
-        "month": "months",
-        "year": "years",
-    }
-    try:
-        # Split the interval string into number and unit
-        parts = time_interval.strip().split()
-        if len(parts) != 2:
-            raise exceptions.InvalidTimeInterval(
-                f"Invalid time interval format: {time_interval}. "
-                "Expected format: '<number> <unit>'"
-            )
 
-        number, unit = parts
-
-        # Validate the number part
+    column_type = type(column.type).__name__
+    # For integer-based columns
+    if column_type in ("Integer", "BigInteger", "SmallInteger"):
         try:
-            number = int(number)
-            if number <= 0:
-                raise ValueError
+            int(interval)
         except ValueError:
-            raise exceptions.InvalidTimeInterval(
-                f"Invalid time interval number: {number}. " "Must be a positive integer"
+            raise exceptions.InvalidChunkTimeInterval(
+                f"{model_class.__name__}: chunk_time_interval must be an integer "
+                f"representing microseconds for {column_type} columns"
             )
-
-        # Validate the unit part
-        unit = unit.lower()
-        if unit in valid_units:
-            return True
-        elif unit in valid_units.values():
-            return True
-        else:
-            raise exceptions.InvalidTimeInterval(
-                f"Invalid time interval unit: {unit}. "
-                f"Must be one of: {', '.join(valid_units.keys())}"
-            )
-
-    except exceptions.InvalidTimeInterval:
-        raise
-    except Exception as e:
-        raise exceptions.InvalidTimeInterval(
-            f"Invalid time interval: {time_interval}. {str(e)}"
+    # For datetime-based columns (TIMESTAMP, TIMESTAMPTZ, DATE)
+    elif column_type in ("DateTime", "Date"):
+        time_interval_seconds = interval
+        if isinstance(interval, timedelta):
+            time_interval_seconds = interval.total_seconds()
+            try:
+                int(time_interval_seconds)
+            except ValueError:
+                raise exceptions.InvalidChunkTimeInterval(
+                    f"{model_class.__name__}: chunk_time_interval must be an integer "
+                    f"representing microseconds for {column_type} columns"
+                )
+        elif isinstance(interval, int):
+            try:
+                int(interval)
+            except ValueError:
+                raise exceptions.InvalidChunkTimeInterval(
+                    f"{model_class.__name__}: chunk_time_interval must be an integer "
+                    f"representing microseconds for {column_type} columns"
+                )
+        elif isinstance(interval, str):
+            if not interval.upper().startswith("INTERVAL"):
+                raise exceptions.InvalidChunkTimeInterval(
+                    f"{model_class.__name__}: chunk_time_interval must be an INTERVAL "
+                    f"(e.g., 'INTERVAL 1 DAY') for {column_type} columns"
+                )
+    else:
+        raise exceptions.InvalidChunkTimeInterval(
+            f"{model_class.__name__}: Unsupported time column type {column_type}"
         )
-
-
-def validate_compress_segmentby_field(
-    model: Type[SQLModel], segmentby_field: str
-) -> bool:
-    """
-    Verify if the specified field is a valid segmentby field.
-    Valid types include String, Integer, Boolean, and other scalar types.
-    Arrays and JSON types are not supported for segmentby.
-    """
-    column = model.__table__.columns.get(segmentby_field)
-    if column is None:
-        raise exceptions.InvalidSegmentByField(
-            f"Field '{segmentby_field}' not found in model {model.__name__}"
-        )
-
-    # Types that are valid for segmentby
-    valid_types = (
-        sqlalchemy.String,
-        sqlalchemy.Integer,
-        sqlalchemy.SmallInteger,
-        sqlalchemy.BigInteger,
-        sqlalchemy.Boolean,
-        sqlalchemy.Date,
-        sqlalchemy.DateTime,
-        sqlalchemy.Enum,
-        sqlalchemy.Float,
-        sqlalchemy.Numeric,
-    )
-
-    column_type = type(column.type)
-    if not issubclass(column_type, valid_types):
-        raise exceptions.InvalidSegmentByField(
-            f"Field '{segmentby_field}' in model {model.__name__} has invalid type {column_type.__name__}. "
-            f"Must be one of: {', '.join(t.__name__ for t in valid_types)}"
-        )
-
-    return True
-
-
-def validate_compress_orderby_field(model: Type[SQLModel], orderby_field: str) -> bool:
-    """
-    Verify if the specified field is a valid orderby field.
-    Most scalar types are valid for orderby, but they should be orderable.
-    """
-    column = model.__table__.columns.get(orderby_field)
-    if column is None:
-        raise exceptions.InvalidOrderByField(
-            f"Field '{orderby_field}' not found in model {model.__name__}"
-        )
-
-    # Types that are not valid for orderby
-    invalid_types = (
-        sqlalchemy.JSON,
-        sqlalchemy.ARRAY,
-        sqlalchemy.PickleType,
-    )
-
-    column_type = type(column.type)
-    if issubclass(column_type, invalid_types):
-        raise exceptions.InvalidOrderByField(
-            f"Field '{orderby_field}' in model {model.__name__} has invalid type {column_type.__name__}. "
-            "JSON, ARRAY, and PickleType are not supported for orderby fields"
-        )
-
-    return True

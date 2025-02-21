@@ -14,9 +14,9 @@ class InvalidTimeColumnType(Exception):
     pass
 
 
-class InvalidTimeInterval(Exception):
+class InvalidChunkTimeInterval(Exception):
     """
-    Exception raised when the time interval is invalid
+    Exception raised when the chunk time interval is invalid
     """
 
     pass
@@ -44,3 +44,9 @@ class InvalidOrderByField(Exception):
     """
 
     pass
+
+
+class InvalidCompressionFields(Exception):
+    """
+    Exception raised when the compression fields are invalid
+    """

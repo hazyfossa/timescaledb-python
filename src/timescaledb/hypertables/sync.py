@@ -25,4 +25,11 @@ def sync_all_hypertables(session: Session, *models: Type[SQLModel]) -> None:
             if getattr(model, "__table__", None) is not None
         ]
     for model in model_list:
-        create_hypertable(session, model, if_not_exists=True, migrate_data=True)
+        create_hypertable(
+            session,
+            model,
+            if_not_exists=True,
+            migrate_data=True,
+            commit=False,
+        )
+    session.commit()

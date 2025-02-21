@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import text
-from sqlalchemy.sql import func
 from sqlalchemy.sql.functions import FunctionElement
 
 from timescaledb.hyperfunctions import time_bucket, time_bucket_gapfill

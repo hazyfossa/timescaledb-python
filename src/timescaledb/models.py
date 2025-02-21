@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import ClassVar, Optional
 
 import sqlmodel
 from sqlmodel import Field, SQLModel
@@ -14,7 +14,10 @@ from timescaledb.utils import get_utc_now
 
 
 class TimescaleModel(SQLModel):
-    """Base class for Timescale hypertables"""
+    """
+    Abstract base class for Timescale hypertables.
+    Subclasses must define the required class variables for TimescaleDB configuration.
+    """
 
     id: Optional[int] = Field(
         default=None,
@@ -27,16 +30,11 @@ class TimescaleModel(SQLModel):
         primary_key=True,
         nullable=False,
     )
-    # Class variable to specify the TimescaleDB time field
-    __time_column__ = TIME_COLUMN
-    # Class variable to specify the TimescaleDB chunk time interval
-    __chunk_time_interval__ = CHUNK_TIME_INTERVAL
 
-    # Class variables to specify TimescaleDB compression settings
-    __enable_compression__ = False
-    # Class variable to specify the TimescaleDB compression orderby
-    __compress_orderby__ = COMPRESS_ORDERBY
-    # Class variable to specify the TimescaleDB compression segmentby
-    __compress_segmentby__ = COMPRESS_SEGMENTBY
-    # Class variable to specify the TimescaleDB compression chunk time interval
-    __compress_chunk_time_interval__ = None
+    # Required TimescaleDB configuration class variables
+    __time_column__: ClassVar[str] = TIME_COLUMN
+    __chunk_time_interval__: ClassVar[str] = CHUNK_TIME_INTERVAL
+    __enable_compression__: ClassVar[bool] = False
+    __compress_orderby__: ClassVar[Optional[str]] = None
+    __compress_segmentby__: ClassVar[Optional[str]] = None
+    # __compress_chunk_time_interval__: ClassVar[Optional[str]] = None

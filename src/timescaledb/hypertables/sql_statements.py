@@ -1,11 +1,22 @@
-CREATE_HYPERTABLE_SQL = """
+CREATE_HYPERTABLE_SQL_VIA_INTERVAL = """
 SELECT create_hypertable(
     :table_name, 
-    by_range(:time_field, INTERVAL :time_interval),
+    by_range(:time_column, INTERVAL :chunk_time_interval),
     if_not_exists => :if_not_exists,
     migrate_data => :migrate_data
 );
 """
+
+
+CREATE_HYPERTABLE_SQL_VIA_TIMESTAMP = """
+SELECT create_hypertable(
+    :table_name, 
+    by_range(:time_column, :chunk_time_interval),
+    if_not_exists => :if_not_exists,
+    migrate_data => :migrate_data
+);
+"""
+
 
 LIST_AVAILABLE_HYPERTABLES_SQL = """
 SELECT * FROM timescaledb_information.hypertables;

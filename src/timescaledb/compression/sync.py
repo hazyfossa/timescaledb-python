@@ -19,7 +19,8 @@ def sync_compression_policies(session: Session, *models: Type[SQLModel]) -> None
             if getattr(model, "__table__", None) is not None
         ]
     for model in model_list:
-        add_compression_policy(session, model)
         compress_enabled = model.__enable_compression__
         if not compress_enabled:
             continue
+        add_compression_policy(session, model, commit=False)
+    session.commit()

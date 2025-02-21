@@ -10,4 +10,4 @@ def create_all(engine: Engine) -> None:
     with Session(engine) as session:
         activate_timescaledb_extension(session)
         sync_all_hypertables(session)
-        # sync_compression_policies(session)
+        sync_compression_policies(session)
