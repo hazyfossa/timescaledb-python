@@ -56,11 +56,35 @@ with Session(engine) as session:
     SQLModel.metadata.create_all(engine)
     # Create the hypertable
     table_name="my_time_series_table",
-    timescaledb.create_hypertable(session, commit=True, table_name=table_name, hypertable_options=hypertable_options)
-    # Add compression policy
-    timescaledb.add_compression_policy(session, commit=True, table_name=table_name, interval=hypertable_options.get('chunk_time_interval'))
+    timescaledb.create_hypertable(
+        session, 
+        commit=True, 
+        table_name=table_name, 
+        hypertable_options=hypertable_options
+    )
+
+    # Enable compression
+    timescaledb.enable_table_compression(
+        session, 
+        commit=True, 
+        table_name=table_name, 
+        compress_orderby=hypertable_options.get('compress_orderby'), 
+        compress_segmentby=hypertable_options.get('compress_segmentby')
+    )
+    # Add compression interval policy
+    timescaledb.add_compression_policy(
+        session, 
+        commit=True,
+        table_name=table_name, 
+        compress_after=hypertable_options.get('chunk_time_interval')
+    )
     # Add retention policy
-    timescaledb.add_retention_policy(session, commit=True, table_name=table_name, drop_after=hypertable_options.get('drop_after'))
+    timescaledb.add_retention_policy(
+        session, 
+        commit=True, 
+        table_name=table_name, 
+        drop_after=hypertable_options.get('drop_after')
+    )
 ```
 
 
