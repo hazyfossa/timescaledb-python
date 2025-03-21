@@ -56,7 +56,7 @@ def validate_chunk_time_interval(
     if column_type in ("Integer", "BigInteger", "SmallInteger"):
         try:
             int(interval)
-        except ValueError:
+        except (ValueError, OverflowError):
             raise exceptions.InvalidChunkTimeInterval(
                 f"{model_class.__name__}: chunk_time_interval must be an integer "
                 f"representing microseconds for {column_type} columns"
@@ -68,7 +68,7 @@ def validate_chunk_time_interval(
             time_interval_seconds = interval.total_seconds()
             try:
                 int(time_interval_seconds)
-            except ValueError:
+            except (ValueError, OverflowError):
                 raise exceptions.InvalidChunkTimeInterval(
                     f"{model_class.__name__}: chunk_time_interval must be an integer "
                     f"representing microseconds for {column_type} columns"
@@ -76,7 +76,7 @@ def validate_chunk_time_interval(
         elif isinstance(interval, int):
             try:
                 int(interval)
-            except ValueError:
+            except (ValueError, OverflowError):
                 raise exceptions.InvalidChunkTimeInterval(
                     f"{model_class.__name__}: chunk_time_interval must be an integer "
                     f"representing microseconds for {column_type} columns"

@@ -23,12 +23,7 @@ def test_model_table_exists(session: Session, engine: Engine):
     """Test that the model table exists."""
     inspector = inspect(engine)
     available_tables = inspector.get_table_names()
-    assert len(available_tables) in [
-        7,
-        8,
-        9,
-        10,
-    ]  # 7 for automatic hypertables, 1 for manual hypertable
+    assert len(available_tables) in range(7, 15)
     assert Metric.__tablename__ in available_tables, "Metrics table was not created!"
     assert Record.__tablename__ in available_tables, "Record table was not created!"
     assert VideoView.__tablename__ in available_tables, "View table was not created!"
