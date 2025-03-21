@@ -141,25 +141,40 @@ def test_add_retention_policy_validation(engine):
 
 def test_list_retention_policies_empty(engine):
     """Test listing retention policies when none exist"""
-    # First transaction: clear policies
-    with Session(engine) as session:
+    import time
+
+    from sqlalchemy.exc import OperationalError
+
+    max_retries = 3
+    retry_delay = 1  # seconds
+
+    for attempt in range(max_retries):
         try:
-            hypertables = [table.hypertable_name for table in list_hypertables(session)]
-            for table_name in hypertables:
-                drop_retention_policy(session, table_name=table_name)
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            print(f"Error clearing policies: {e}")
+            # First transaction: clear policies
+            with Session(engine) as session:
+                hypertables = [
+                    table.hypertable_name for table in list_hypertables(session)
+                ]
+                for table_name in hypertables:
+                    try:
+                        drop_retention_policy(session, table_name=table_name)
+                    except Exception as e:
+                        print(f"Error dropping policy for {table_name}: {e}")
+                        session.rollback()
+                        continue
+                session.commit()
+                break  # If we get here, everything worked
+        except OperationalError as e:
+            if "deadlock detected" in str(e).lower() and attempt < max_retries - 1:
+                print(f"Deadlock detected, attempt {attempt + 1} of {max_retries}")
+                time.sleep(retry_delay)
+                continue
             raise
+    else:
+        raise Exception("Failed to clear retention policies after max retries")
 
     # Second transaction: verify empty state
     with Session(engine) as session:
-        try:
-            policies = list_retention_policies(session)
-            print(f"Policies after clearing: {policies}")
-            assert policies is None or len(policies) == 0
-        except Exception as e:
-            session.rollback()
-            print(f"Error listing policies: {e}")
-            raise
+        policies = list_retention_policies(session)
+        print(f"Policies after clearing: {policies}")
+        assert policies is None or len(policies) == 0
