@@ -26,6 +26,8 @@ def test_model_table_exists(session: Session, engine: Engine):
     assert len(available_tables) in [
         7,
         8,
+        9,
+        10,
     ]  # 7 for automatic hypertables, 1 for manual hypertable
     assert Metric.__tablename__ in available_tables, "Metrics table was not created!"
     assert Record.__tablename__ in available_tables, "Record table was not created!"

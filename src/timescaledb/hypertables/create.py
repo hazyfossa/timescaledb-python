@@ -47,13 +47,14 @@ def create_hypertable(
 
     Example:
         ```python
-        from sqlmodel import SQLModel
+        from timescaledb import TimescaleModel
 
-        class Metrics(SQLModel, table=True):
-            __hypertable_params__ = {
-                "time_column": "timestamp",
-                "chunk_time_interval": timedelta(days=7)
-            }
+        class Metrics(TimescaleModel, table=True):
+            sensor_id: int
+            value: float
+
+             __time_column__: ClassVar[str] = "time"
+            __chunk_time_interval__: ClassVar[str] = "INTERVAL 7 Days"
             # ... model fields ...
 
         # Create hypertable using model parameters

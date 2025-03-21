@@ -103,12 +103,13 @@ engine = create_engine(TIMESCALE_DATABASE_URL, timezone="UTC")
 class SensorDos(TimescaleModel, table=True):
     sensor_id: int = Field(index=True)
     value: float
-
+    
+    # __time_column__ = "time" # set in TimescaleModel
+    __chunk_time_interval__ = "INTERVAL 7 days"
+    __drop_after__ = "INTERVAL 1 year"
     __enable_compression__ = True
     __compress_orderby__ = "time DESC"
     __compress_segmentby__ = "sensor_id"  
-    __chunk_time_interval__ = "7 days"
-    __drop_after__ = "1 year"
     __migrate_data__ = True
     __if_not_exists__ = True
 

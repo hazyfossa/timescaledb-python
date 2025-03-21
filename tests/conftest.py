@@ -38,7 +38,9 @@ def engine_fixture(timescale_url: str):
 @pytest.fixture(name="session")
 def session_fixture(engine):
     """Create a new database session for each test."""
-    session = Session(engine)
+    # Configure session with READ COMMITTED isolation level
+    session = Session(engine, autocommit=False, autoflush=True)
+    session.connection(execution_options={"isolation_level": "READ COMMITTED"})
     yield session
     session.close()
 
@@ -139,6 +141,19 @@ class SimpleCompressionWithSegmentby(TimescaleModel, table=True):
     __compress_segmentby__ = "value"
 
 
+class RetentionModel(TimescaleModel, table=True):
+    """Test retention policy model for TimescaleDB functionality."""
+
+    value: int
+
+    __table_name__ = "retention_model"
+    __enable_compression__ = False
+    __drop_after__ = "INTERVAL 1 year"
+    __if_not_exists__ = True
+    __migrate_data__ = True
+    __chunk_time_interval__ = "INTERVAL 7 days"
+
+
 @pytest.fixture(scope="function", autouse=True)
 def migrate_database(engine: Engine):
     """Migrate the database to the latest version."""
@@ -156,5 +171,6 @@ test_hypertables_list = [
     SimpleCompression,
     SimpleCompressionWithOrderby,
     SimpleCompressionWithSegmentby,
+    RetentionModel,
 ]
 test_regular_tables_list = [Record]

@@ -9,6 +9,11 @@ from timescaledb import TimescaleModel
 class Metric(TimescaleModel, table=True):
     temp: float = Field(index=True)
 
+    __enable_compression__ = True
+    __compress_orderby__ = "time"
+    __compress_segmentby__ = "temp"
+    __drop_after__ = "INTERVAL 1 day"
+
 
 class MetricCreate(SQLModel):
     temp: float

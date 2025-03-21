@@ -11,7 +11,6 @@ def add_retention_policy(
     model: Type[SQLModel] = None,
     table_name: str = None,
     drop_after=None,
-    commit: bool = True,
 ) -> None:
     """
     Add a retention policy to a hypertable
@@ -30,6 +29,5 @@ def add_retention_policy(
             table_name=table_name,
             drop_after=drop_after,
         )
+
     session.execute(sqlalchemy.text(sql_query))
-    if commit:
-        session.commit()

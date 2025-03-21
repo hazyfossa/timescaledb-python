@@ -1,16 +1,24 @@
-from sqlalchemy import create_engine as create_engine_sqlalchemy
+import sqlalchemy
+from sqlalchemy.engine import Engine
 
 
-def create_engine(url: str, timezone: str = "UTC", *args, **kwargs):
-    """
-    Create a SQLAlchemy create_engine wrapper
-    that ensures that the timezone is set for the timestamp columns.
+def create_engine(url: str, timezone: str = "UTC", **kwargs) -> Engine:
+    """Create a SQLAlchemy engine with TimescaleDB-specific configuration.
 
     Args:
         url: Database URL
-        timezone: Timezone for timestamp columns
-    """
+        timezone: Timezone to use for the database connection
+        **kwargs: Additional arguments to pass to create_engine
 
-    connect_args = kwargs.get("connect_args", {})
+    Returns:
+        SQLAlchemy Engine instance
+    """
+    connect_args = kwargs.pop("connect_args", {})
     connect_args["options"] = f"-c timezone={timezone}"
-    return create_engine_sqlalchemy(url, connect_args=connect_args, *args, **kwargs)
+
+    return sqlalchemy.create_engine(
+        url,
+        connect_args=connect_args,
+        execution_options={"isolation_level": "READ COMMITTED"},
+        **kwargs,
+    )

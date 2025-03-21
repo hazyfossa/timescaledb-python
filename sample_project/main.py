@@ -1,13 +1,12 @@
 from datetime import datetime, timedelta, timezone
 
+from app import models
+from app.database import get_session, init_db
 from fastapi import Depends, FastAPI, HTTPException
 from sqlmodel import Session, desc
 
 from timescaledb import list_hypertables
 from timescaledb.queries import time_bucket_gapfill_query
-
-from . import models
-from .database import get_session, init_db
 
 app = FastAPI(title="FastAPI SQLModel Demo")
 

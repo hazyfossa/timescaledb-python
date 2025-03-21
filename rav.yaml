@@ -17,7 +17,7 @@ scripts:
   migrate:
     - cd sample_project
     - ../venv/bin/python -m alembic upgrade head
-  app_install:
+  sample_server_install:
     - cd sample_project
     - ../venv/bin/pip install -r requirements.txt
   sample_server:
@@ -28,6 +28,10 @@ scripts:
     - ../venv/bin/python main.py
   bump:
     - venv/bin/bump2version patch
+  test_verbose:
+    - venv/bin/tox run -f py312 -v -r -- --log-cli-level=DEBUG
+    - venv/bin/coverage combine
+    - venv/bin/coverage report
   test:
     - venv/bin/tox run -f py312
     - venv/bin/coverage combine

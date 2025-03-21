@@ -119,10 +119,7 @@ def test_compression_with_created_before(session: Session):
 
     # Enable compression
     enable_table_compression(
-        session, 
-        table_name=table_name, 
-        compress_orderby="time", 
-        commit=True
+        session, table_name=table_name, compress_orderby="time", commit=True
     )
 
     # Add compression policy with created_before
