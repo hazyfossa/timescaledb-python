@@ -124,6 +124,10 @@ with Session(engine) as session:
 
 
 
+## Used by
+
+- [analytics-api](https://github.com/codingforentrepreneurs/analytics-api) - Complete tutorial project for building an Analytics API using FastAPI + TimescaleDB
+
 
 ## Sample Usage 
 
